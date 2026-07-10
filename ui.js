@@ -514,10 +514,12 @@ ${(() => {
         <small style="color: #64748b;">Total latas vendidas: <b>${totalLatas}</b></small>
       </div>`;
   }
-  if (Object.entries(stats.totalesPorEstilo).length === 0)
+ if (Object.entries(stats.totalesPorEstilo).length === 0)
     return '<p style="color:gray; font-size: 0.9em;">Esperando primeras ventas...</p>';
   return Object.entries(stats.totalesPorEstilo).sort((a, b) => b[1] - a[1]).map(([estilo, cant]) => {
-    const porcentaje = ((cant / stats.granTotalLatas) * 100).toFixed(0);
+    const porcentaje = stats.granTotalLatas > 0
+      ? ((cant / stats.granTotalLatas) * 100).toFixed(0)
+      : '0';
     return `
     <div class="flex space-between" style="padding: 4px 0; border-bottom: 1px solid #e2e8f0;">
       <span>${estilo}</span>
