@@ -265,10 +265,11 @@ async function cargarDatosDesdeSheet() {
     if (!datosCloud.usuarios || typeof datosCloud.usuarios !== "object") return;
 
     setState((prev) => {
-      // 1. POPULARIDAD
-      if (datosCloud.popularidad) {
-        prev.popularidadSheet = datosCloud.popularidad;
-      }
+     // 1. POPULARIDAD
+if (datosCloud.popularidad) {
+  prev.popularidadSheet = datosCloud.popularidad;
+  prev.popularidad = datosCloud.popularidad; // 👈 AGREGÁ ESTA LÍNEA JUSTO ABAJO
+}
 
       // 2. TOTALES FINANCIEROS
       if (datosCloud.totalIngresadoSheet !== undefined) prev.totalIngresadoSheet = Number(datosCloud.totalIngresadoSheet) || 0;
