@@ -85,16 +85,12 @@ function paraProfetaMostrar(v) {
 }
 
 // Determina si una venta aparece en el historial global
+// Antes esta función ocultaba por completo las ventas "fiado" (PENDIENTE)
+// de clientes con nombre propio. Pero el render de más abajo ya sabe
+// mostrar la etiqueta "⏳ Fiado (pendiente)" para esos casos, así que
+// no hace falta esconder la venta: alcanza con que tenga un monto cargado.
 function ventaApareceEnHistorialGlobal(v) {
-  const est = String(v.estado || "").trim().toUpperCase();
-  const mp = String(v.metodoPago || "").trim();
-  const cli = String(v.cliente || "").trim();
-  if (est === "PAGADO" || est === "COBRADO") return true;
-  if (est === "PENDIENTE") {
-    if (cli && cli !== "Consumidor Final") return false;
-    return mp.length > 0;
-  }
-  return mp.length > 0;
+  return (Number(v.totalCobrado) || 0) > 0;
 }
 
 // Estadísticas de ventas por estilo
@@ -500,21 +496,13 @@ ${estilosBase.reduce((sum, e) => sum + Object.values(state.usuarios).reduce((s, 
   <div class="card" style="background: #f8fafc; border: 1px solid #e2e8f0;">
     <h2>Popularidad (% Ventas)</h2>
 ${(() => {
-  const tieneSheet = Object.keys(state.popularidadSheet || {}).length > 0;
-  if (tieneSheet) {
-    const entradas = Object.entries(state.popularidadSheet).sort((a, b) => (b[1].cantidad || 0) - (a[1].cantidad || 0));
-    const totalLatas = entradas.reduce((s, [, v]) => s + (v.cantidad || 0), 0);
-    return entradas.map(([estilo, v]) => `
-      <div class="flex space-between" style="padding: 4px 0; border-bottom: 1px solid #e2e8f0;">
-        <span>${estilo}</span>
-        <span style="color:#64748b; font-size:0.85em; margin-right:8px;">${v.cantidad} latas</span>
-        <span style="color: #3b82f6; font-weight: bold;">${v.porcentaje}%</span>
-      </div>`).join("") + `
-      <div style="margin-top: 15px; text-align: right;">
-        <small style="color: #64748b;">Total latas vendidas: <b>${totalLatas}</b></small>
-      </div>`;
-  }
- if (Object.entries(stats.totalesPorEstilo).length === 0)
+  // Usamos SIEMPRE el cálculo local (getEstadisticasVentas), porque se
+  // recalcula en cada render y ya incluye tanto las ventas sincronizadas
+  // desde el Sheet como las recién registradas que todavía no se
+  // guardaron con «Guardar en Sheet». state.popularidadSheet solo se
+  // actualiza al sincronizar, así que quedaba desactualizado apenas se
+  // cargaba una venta nueva.
+  if (Object.entries(stats.totalesPorEstilo).length === 0)
     return '<p style="color:gray; font-size: 0.9em;">Esperando primeras ventas...</p>';
   return Object.entries(stats.totalesPorEstilo).sort((a, b) => b[1] - a[1]).map(([estilo, cant]) => {
     const porcentaje = stats.granTotalLatas > 0
@@ -523,6 +511,7 @@ ${(() => {
     return `
     <div class="flex space-between" style="padding: 4px 0; border-bottom: 1px solid #e2e8f0;">
       <span>${estilo}</span>
+      <span style="color:#64748b; font-size:0.85em; margin-right:8px;">${cant} latas</span>
       <span style="color: #3b82f6; font-weight: bold;">${porcentaje}%</span>
     </div>`;
   }).join("") + `
