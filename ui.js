@@ -590,11 +590,21 @@ function renderVentasGeneral() {
             <div style="display:flex; gap:12px; flex-wrap:wrap; color:#374151; align-items:center;">
               <span>💵 $${(v.totalCobrado||0).toLocaleString('es-AR')}</span>
               ${(() => {
-                const est = String(v.estado || " ").trim().toUpperCase();
-                const mp = String(v.metodoPago || " ").trim().toLowerCase();
-                if (est === "PENDIENTE" && !mp) return '<span style="padding:1px 8px; border-radius:6px; font-size:0.85em; font-weight:600; background:#fef3c7; color:#92400e;">⏳ Fiado (pendiente)</span>';
+                const mp = String(v.metodoPago || "").trim().toLowerCase();
                 if (mp === "transferencia") return '<span style="padding:1px 8px; border-radius:6px; font-size:0.85em; font-weight:600; background:#dbeafe; color:#1e40af;">🏦 Transferencia</span>';
-                return '<span style="padding:1px 8px; border-radius:6px; font-size:0.85em; font-weight:600; background:#dcfce7; color:#166534;">💵 Efectivo</span>';
+                if (mp === "efectivo") return '<span style="padding:1px 8px; border-radius:6px; font-size:0.85em; font-weight:600; background:#dcfce7; color:#166534;">💵 Efectivo</span>';
+                // Esta venta no tiene método de pago propio cargado (nació fiada).
+                // Cobrar desde «Cartera de Clientes» actualiza la deuda del cliente
+                // pero nunca vuelve a tocar esta fila puntual, así que en vez de
+                // mirar el campo (que queda desactualizado para siempre), miramos
+                // si el cliente, en total, ya no tiene deuda pendiente.
+                const nombreCliente = String(v.cliente || "").toLowerCase().trim();
+                const clienteObj = state.clientesGlobales.find(c => String(c.nombre || "").toLowerCase().trim() === nombreCliente);
+                const deudaPendiente = clienteObj ? Math.max(0, (Number(clienteObj.deuda) || 0) - (Number(clienteObj.pagado) || 0)) : 0;
+                if (clienteObj && deudaPendiente <= 0) {
+                  return '<span style="padding:1px 8px; border-radius:6px; font-size:0.85em; font-weight:600; background:#dcfce7; color:#166534;">✅ Cobrado</span>';
+                }
+                return '<span style="padding:1px 8px; border-radius:6px; font-size:0.85em; font-weight:600; background:#fef3c7; color:#92400e;">⏳ Fiado (pendiente)</span>';
               })()}
               <span>Comisión: $${(v.comision||0).toLocaleString('es-AR')}</span>
               <span>👑 Profeta: $${paraProfetaMostrar(v).toLocaleString('es-AR')}</span>
