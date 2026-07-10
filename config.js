@@ -8,4 +8,4 @@
  * const URL_SCRIPT = "https://script.google.com/macros/s/AKfycb.../exec";
  * ============================================================
  */
-const URL_SCRIPT = "PEGA_ACA_TU_URL_DE_GOOGLE_APPS_SCRIPT";
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyDpHDoszl67wE-iFXZHk0ljI64ys6sqzq46kfgkW6EG8NW71hXLKOV1-nlE3VmuDDJ/exec";
