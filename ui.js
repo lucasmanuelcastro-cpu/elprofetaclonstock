@@ -499,35 +499,46 @@ ${estilosBase.reduce((sum, e) => sum + Object.values(state.usuarios).reduce((s, 
   </div>
   <div class="card" style="background: #f8fafc; border: 1px solid #e2e8f0;">
     <h2>Popularidad (% Ventas)</h2>
-${(() => {
-  const tieneSheet = Object.keys(state.popularidadSheet || {}).length > 0;
-  if (tieneSheet) {
-    const entradas = Object.entries(state.popularidadSheet).sort((a, b) => (b[1].cantidad || 0) - (a[1].cantidad || 0));
-    const totalLatas = entradas.reduce((s, [, v]) => s + (v.cantidad || 0), 0);
-    return entradas.map(([estilo, v]) => `
-      <div class="flex space-between" style="padding: 4px 0; border-bottom: 1px solid #e2e8f0;">
-        <span>${estilo}</span>
-        <span style="color:#64748b; font-size:0.85em; margin-right:8px;">${v.cantidad} latas</span>
-        <span style="color: #3b82f6; font-weight: bold;">${v.porcentaje}%</span>
-      </div>`).join("") + `
-      <div style="margin-top: 15px; text-align: right;">
-        <small style="color: #64748b;">Total latas vendidas: <b>${totalLatas}</b></small>
-      </div>`;
-  }
-  if (Object.entries(stats.totalesPorEstilo).length === 0)
-    return '<p style="color:gray; font-size: 0.9em;">Esperando primeras ventas...</p>';
-  return Object.entries(stats.totalesPorEstilo).sort((a, b) => b[1] - a[1]).map(([estilo, cant]) => {
-    const porcentaje = ((cant / stats.granTotalLatas) * 100).toFixed(0);
-    return `
-    <div class="flex space-between" style="padding: 4px 0; border-bottom: 1px solid #e2e8f0;">
-      <span>${estilo}</span>
-      <span style="color: #3b82f6; font-weight: bold;">${porcentaje}%</span>
-    </div>`;
-  }).join("") + `
-  <div style="margin-top: 15px; text-align: right;">
-    <small style="color: #64748b;">Total latas vendidas: <b>${stats.granTotalLatas}</b></small>
-  </div>`;
-})()}
+(() => {
+        const tieneSheet = Object.keys(state.popularidadSheet || {}).length > 0;
+        if (tieneSheet) {
+          // 1. Convertimos las entradas y las ordenamos de mayor a menor por el número de ventas
+          const entradas = Object.entries(state.popularidadSheet).sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0));
+          
+          // 2. Sumamos todas las latas para tener el gran total real
+          const totalLatas = entradas.reduce((s, [, v]) => s + (Number(v) || 0), 0);
+          
+          // 3. Dibujamos el HTML calculando el porcentaje al vuelo
+          return entradas.map(([estilo, v]) => {
+            const cantidad = Number(v) || 0;
+            const porcentaje = totalLatas > 0 ? ((cantidad / totalLatas) * 100).toFixed(0) : 0;
+            
+            return `
+              <div class="flex space-between" style="padding: 4px 0; border-bottom: 1px solid #e2e8f0;">
+                <span>${estilo}</span>
+                <span style="color:#64748b; font-size:0.85em; margin-right:8px;">${cantidad} latas</span>
+                <span style="color: #3b82f6; font-weight: bold;">${porcentaje}%</span>
+              </div>`;
+          }).join("") + `
+          <div style="margin-top: 15px; text-align: right;">
+            <small style="color: #64748b;">Total latas vendidas: <b>${totalLatas}</b></small>
+          </div>`;
+        }
+
+        if (Object.entries(stats.totalesPorEstilo).length === 0) return '<p style="color:gray; font-size: 0.9em;">Esperando primeras ventas...</p>';
+        
+        return Object.entries(stats.totalesPorEstilo).sort((a, b) => b[1] - a[1]).map(([estilo, cant]) => {
+          const porcentaje = ((cant / stats.granTotalLatas) * 100).toFixed(0);
+          return `
+            <div class="flex space-between" style="padding: 4px 0; border-bottom: 1px solid #e2e8f0;">
+              <span>${estilo}</span>
+              <span style="color: #3b82f6; font-weight: bold;">${porcentaje}%</span>
+            </div>`;
+        }).join("") + `
+        <div style="margin-top: 15px; text-align: right;">
+          <small style="color: #64748b;">Total latas vendidas: <b>${stats.granTotalLatas}</b></small>
+        </div>`;
+      })()
   </div>
 </div>`;
 }
